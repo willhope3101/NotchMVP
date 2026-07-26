@@ -4,7 +4,7 @@ Một tiện ích nhỏ cho macOS, biến notch (tai thỏ) trên MacBook thành
 
 Ứng dụng chạy nền, không hiện icon trên Dock, chỉ có một biểu tượng `◗` nhỏ trên thanh menu bar.
 
-![Bảng điều khiển mở rộng](docs/expanded.png)
+![Bảng điều khiển mở rộng](docs/panel.png)
 
 Khi có nhạc mới phát hoặc đổi bài, một dải nhỏ hiện ra hai bên notch trong vài giây:
 
