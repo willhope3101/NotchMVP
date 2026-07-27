@@ -39,9 +39,9 @@ cat > "$APP/Contents/Info.plist" <<'PLIST'
     <key>LSUIElement</key>
     <true/>
     <key>NSAppleEventsUsageDescription</key>
-    <string>NotchMVP đọc và điều khiển nhạc đang phát trong Apple Music, Spotify và trình duyệt.</string>
+    <string>NotchMVP reads and controls playback in Apple Music, Spotify, and your browser.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>NotchMVP dùng vị trí của bạn để hiển thị thời tiết hiện tại.</string>
+    <string>NotchMVP uses your location to show the current weather.</string>
     <key>NSHumanReadableCopyright</key>
     <string>NotchMVP</string>
 </dict>

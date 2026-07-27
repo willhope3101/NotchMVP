@@ -45,7 +45,7 @@ enum ShelfScratch {
             .prefix(28)
             .replacingOccurrences(of: "/", with: "-")
             .replacingOccurrences(of: ":", with: "-")
-        let name = safe.isEmpty ? "Ghi chú \(stamp)" : "\(safe).txt"
+        let name = safe.isEmpty ? "Note \(stamp)" : "\(safe).txt"
         let url = folder.appendingPathComponent(name.hasSuffix(".txt") ? name : name + ".txt")
         do {
             try trimmed.write(to: url, atomically: true, encoding: .utf8)
@@ -64,7 +64,7 @@ enum ShelfScratch {
             notchDebug("shelf: dropped image wasn't decodable")
             return nil
         }
-        let url = folder.appendingPathComponent("Ảnh \(stamp).png")
+        let url = folder.appendingPathComponent("Image \(stamp).png")
         do {
             try png.write(to: url)
             return url
@@ -76,7 +76,7 @@ enum ShelfScratch {
 }
 
 // Deliberately in memory only: this is a temporary staging area, and quietly
-// keeping a list of the user's files across launches isn't what "tạm" means.
+// keeping a list of the user's files across launches isn't what "temporary" means.
 extension NotchState {
     func addToShelf(_ urls: [URL]) {
         let known = Set(shelfItems.map(\.url))

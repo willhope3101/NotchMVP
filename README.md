@@ -1,43 +1,43 @@
 # NotchMVP
 
-Một tiện ích nhỏ cho macOS, biến notch (tai thỏ) trên MacBook thành nơi hiển thị nhạc đang phát, đồng hồ/thời tiết và một "kệ" để tạm file — lấy cảm hứng từ [NotchNook](https://github.com/aleksey-nekrasov/NotchNook).
+A small macOS utility that turns your MacBook's notch into a home for now-playing media, a clock/weather widget, and a temporary shelf for files — inspired by [NotchNook](https://github.com/aleksey-nekrasov/NotchNook).
 
-Ứng dụng chạy nền, không hiện icon trên Dock, chỉ có một biểu tượng `◗` nhỏ trên thanh menu bar.
+The app runs in the background with no Dock icon, just a small `◗` icon in the menu bar.
 
-![Bảng điều khiển mở rộng](docs/panel.png)
+![Expanded panel](docs/panel.png)
 
-Khi có nhạc mới phát hoặc đổi bài, một dải nhỏ hiện ra hai bên notch trong vài giây:
+When new music starts or the track changes, a small pill appears on either side of the notch for a few seconds:
 
-![Dạng mini](docs/mini.png)
+![Mini pill](docs/mini.png)
 
-## Tính năng
+## Features
 
-- **Điều khiển nhạc** — nhận diện và điều khiển phát/dừng/chuyển bài từ Apple Music, Spotify, VLC, QuickTime và các trang nghe nhạc/video phổ biến đang mở trong trình duyệt (YouTube, SoundCloud, v.v.)
-- **Dải mini** — khi nhạc bắt đầu phát hoặc đổi bài, ảnh bìa và waveform hiện ra ngay hai bên notch, tự ẩn sau vài giây
-- **Bảng mở rộng** — di chuột vào notch để xem đồng hồ, thời tiết hiện tại, ảnh bìa lớn, tên bài hát, thanh tua và nút điều khiển; click vào ảnh bìa để mở tab/app đang phát
-- **Waveform phản hồi âm thanh thực** — không phải hiệu ứng giả, lấy trực tiếp từ tín hiệu đang phát
-- **Kệ file (Shelf)** — kéo file, ảnh hoặc đoạn văn bản thả vào notch để tạm giữ; kéo ra để dùng lại, click để xem trước (Quick Look), chuột phải để có thêm tùy chọn
-- **Phím tắt toàn cục** — `⌥ Option + Space` để bật/tắt bảng mở rộng bất cứ đâu
-- **Khởi động cùng macOS** — bật/tắt ngay trong menu `◗`
-- **Cấu hình qua file JSON** — mọi con số (thời gian chờ, kích thước, phím tắt...) đều chỉnh được mà không cần build lại
+- **Media controls** — detects and controls play/pause/skip from Apple Music, Spotify, VLC, QuickTime, and popular music/video sites open in your browser (YouTube, SoundCloud, etc.)
+- **Mini pill** — cover art and a waveform appear right beside the notch when playback starts or the track changes, then fade away on their own
+- **Expanded panel** — hover the notch to see the clock, current weather, full-size artwork, track title, scrub bar, and transport controls; click the artwork to jump to the tab/app that's playing
+- **Real audio-reactive waveform** — not a canned animation, it's driven by the actual playing audio
+- **File shelf** — drag files, images, or text snippets onto the notch to hold onto them; drag them back out to use, click for a Quick Look preview, right-click for more options
+- **Global hotkey** — `⌥ Option + Space` toggles the expanded panel from anywhere
+- **Launch at login** — toggle right from the `◗` menu
+- **JSON-based configuration** — every tunable (timeouts, sizes, hotkey) is editable without rebuilding
 
-## Cài đặt
+## Installation
 
-### Cách 1 — Tải bản build sẵn (khuyên dùng)
+### Option 1 — Download a prebuilt release (recommended)
 
-1. Vào mục [Releases](../../releases) của repo này, tải file `NotchMVP.zip` mới nhất
-2. Giải nén, kéo `NotchMVP.app` vào thư mục **Applications**
-3. Vì app chỉ được ký ad-hoc (không phải tài khoản Apple Developer trả phí), lần đầu mở macOS sẽ chặn. Cách mở:
-   - Chuột phải vào `NotchMVP.app` → **Open** → xác nhận **Open** lần nữa, **hoặc**
-   - Vào **System Settings → Privacy & Security**, cuộn xuống thấy dòng cảnh báo về NotchMVP, bấm **Open Anyway**
-4. Lần đầu chạy, macOS sẽ hỏi quyền:
-   - **Automation** (điều khiển Music/Spotify/trình duyệt) — bắt buộc để điều khiển nhạc
-   - **Location** (vị trí) — chỉ để hiển thị thời tiết, có thể từ chối nếu không cần
-   - Nếu muốn điều khiển nhạc từ Chrome/tab trình duyệt: mở Chrome → **View → Developer → Allow JavaScript from Apple Events**
+1. Go to this repo's [Releases](../../releases) page and download the latest `NotchMVP.zip`
+2. Unzip it and drag `NotchMVP.app` into your **Applications** folder
+3. Since the app is only ad-hoc signed (no paid Apple Developer account), macOS will block it the first time. To open it:
+   - Right-click `NotchMVP.app` → **Open** → confirm **Open** again, **or**
+   - Go to **System Settings → Privacy & Security**, scroll down to the warning about NotchMVP, and click **Open Anyway**
+4. On first launch, macOS will ask for a couple of permissions:
+   - **Automation** (to control Music/Spotify/your browser) — required for media control
+   - **Location** — only used to show the current weather; you can deny it if you don't want that
+   - To control playback from a Chrome tab: open Chrome → **View → Developer → Allow JavaScript from Apple Events**
 
-### Cách 2 — Build từ source
+### Option 2 — Build from source
 
-Yêu cầu: macOS 14+, Xcode hoặc Command Line Tools đã cài.
+Requires macOS 14+ and Xcode or the Command Line Tools.
 
 ```bash
 git clone https://github.com/willhope3101/NotchMVP.git
@@ -45,15 +45,15 @@ cd NotchMVP
 ./install.sh
 ```
 
-`install.sh` sẽ build bản release, đóng gói thành `.app`, dừng mọi bản đang chạy, cài vào `/Applications`, trỏ lại mục khởi động cùng macOS, và mở app.
+`install.sh` builds a release binary, wraps it into a `.app`, stops any running copy, installs it to `/Applications`, repoints the login item, and launches it.
 
-## Cấu hình
+## Configuration
 
-Từ menu `◗` trên menu bar → **Mở file cài đặt** để sửa `~/Library/Application Support/NotchMVP/settings.json`, sau đó chọn **Tải lại cài đặt** để áp dụng ngay mà không cần khởi động lại app.
+From the `◗` menu bar item → **Open Settings File** to edit `~/Library/Application Support/NotchMVP/settings.json`, then choose **Reload Settings** to apply changes immediately without restarting the app.
 
-## Gỡ cài đặt
+## Uninstalling
 
-1. Menu `◗` → **Thoát**
-2. Xóa `/Applications/NotchMVP.app`
-3. Xóa thư mục cấu hình: `~/Library/Application Support/NotchMVP`
-4. Nếu đã bật khởi động cùng macOS: xóa file LaunchAgent tương ứng trong `~/Library/LaunchAgents`
+1. `◗` menu → **Quit**
+2. Delete `/Applications/NotchMVP.app`
+3. Delete the config folder: `~/Library/Application Support/NotchMVP`
+4. If you enabled launch at login: remove the matching LaunchAgent file from `~/Library/LaunchAgents`

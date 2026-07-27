@@ -1031,7 +1031,7 @@ final class MediaController: ObservableObject {
             // -1743 == user hasn't granted Automation permission yet.
             if let code = error[NSAppleScript.errorNumber] as? Int, code == -1743 {
                 notchDebug("automation denied (-1743)")
-                let app = nowPlaying.app.isEmpty ? "trình phát" : nowPlaying.app
+                let app = nowPlaying.app.isEmpty ? "the player" : nowPlaying.app
                 DispatchQueue.main.async { self.blocker = .automationDenied(app) }
             }
             return nil

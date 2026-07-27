@@ -150,7 +150,7 @@ struct NotchRootView: View {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.55), style: StrokeStyle(lineWidth: 1.5, dash: [5, 4]))
                 .overlay(
-                    Text(state.shelfItems.isEmpty ? "Thả file để lưu tạm" : "Thêm vào shelf")
+                    Text(state.shelfItems.isEmpty ? "Drop files to hold onto" : "Add to shelf")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.white.opacity(0.85))
                 )
@@ -290,9 +290,9 @@ struct BlockerNotice: View {
     private var message: String {
         switch blocker {
         case .browserJavaScriptOff(let app):
-            return "Bật \(app) → View → Developer → Allow JavaScript from Apple Events để dùng nút điều khiển"
+            return "Enable \(app) → View → Developer → Allow JavaScript from Apple Events to use the controls"
         case .automationDenied(let app):
-            return "Cấp quyền điều khiển \(app) trong System Settings → Privacy & Security → Automation"
+            return "Grant \(app) permission in System Settings → Privacy & Security → Automation"
         }
     }
 
@@ -557,24 +557,24 @@ struct ShelfChip: View {
         .onDrag { NSItemProvider(contentsOf: item.url) ?? NSItemProvider() }
         .onTapGesture { PreviewWindow.shared.show(item.url) }
         .contextMenu {
-            Button("Xem trước") { PreviewWindow.shared.show(item.url) }
-            Button("Hiện trong Finder") {
+            Button("Quick Look") { PreviewWindow.shared.show(item.url) }
+            Button("Show in Finder") {
                 NSWorkspace.shared.activateFileViewerSelecting([item.url])
             }
             Divider()
-            Button("Sao chép file") {
+            Button("Copy File") {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.writeObjects([item.url as NSURL])
             }
-            Button("Sao chép đường dẫn") {
+            Button("Copy Path") {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(item.url.path, forType: .string)
             }
             Divider()
-            Button("Bỏ khỏi shelf") { onRemove() }
+            Button("Remove from Shelf") { onRemove() }
         }
         .handCursor()
-        .help("\(item.url.path)\n\nBấm để xem trước · kéo ra để dùng")
+        .help("\(item.url.path)\n\nClick to preview · drag out to use")
     }
 }
 
@@ -606,7 +606,7 @@ private struct ClearShelfButton: View {
         .handCursor()
         .onHover { hovering = $0 }
         .animation(.smooth(duration: 0.18), value: hovering)
-        .help("Xoá hết")
+        .help("Clear all")
     }
 }
 
@@ -627,7 +627,7 @@ private struct ChipRemoveButton: View {
         .handCursor()
         .onHover { hovering = $0 }
         .animation(.smooth(duration: 0.15), value: hovering)
-        .help("Bỏ khỏi shelf")
+        .help("Remove from shelf")
     }
 }
 
@@ -744,7 +744,7 @@ struct MediaWidget: View {
 
             VStack(alignment: .leading, spacing: 9) {
                 if np.title.isEmpty {
-                    Text("Không có nhạc đang phát")
+                    Text("Nothing playing")
                         .font(.system(size: 13))
                         .foregroundStyle(.white.opacity(0.5))
                         .frame(maxWidth: .infinity, alignment: .leading)

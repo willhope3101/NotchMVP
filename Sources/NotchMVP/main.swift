@@ -29,17 +29,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(NSMenuItem(title: "NotchMVP", action: nil, keyEquivalent: ""))
         menu.addItem(.separator())
 
-        let login = NSMenuItem(title: "Mở cùng macOS",
+        let login = NSMenuItem(title: "Open at Login",
                                action: #selector(toggleLaunchAtLogin),
                                keyEquivalent: "")
         menu.addItem(login)
         launchAtLoginItem = login
 
-        menu.addItem(NSMenuItem(title: "Mở file cài đặt", action: #selector(openSettings), keyEquivalent: ","))
-        menu.addItem(NSMenuItem(title: "Tải lại cài đặt", action: #selector(reloadSettings), keyEquivalent: "l"))
+        menu.addItem(NSMenuItem(title: "Open Settings File", action: #selector(openSettings), keyEquivalent: ","))
+        menu.addItem(NSMenuItem(title: "Reload Settings", action: #selector(reloadSettings), keyEquivalent: "l"))
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Đặt lại vị trí notch", action: #selector(reposition), keyEquivalent: "r"))
-        menu.addItem(NSMenuItem(title: "Thoát", action: #selector(quit), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Reset Notch Position", action: #selector(reposition), keyEquivalent: "r"))
+        menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q"))
         for i in menu.items { i.target = self }
         item.menu = menu
         statusItem = item

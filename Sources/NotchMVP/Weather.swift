@@ -24,17 +24,17 @@ struct WeatherNow: Equatable {
 
     var summary: String {
         switch code {
-        case 0:         return "Trời quang"
-        case 1, 2:      return "Ít mây"
-        case 3:         return "Nhiều mây"
-        case 45, 48:    return "Sương mù"
-        case 51...57:   return "Mưa phùn"
-        case 61...65:   return "Mưa"
-        case 66, 67:    return "Mưa băng"
-        case 71...77:   return "Tuyết"
-        case 80...82:   return "Mưa rào"
-        case 85, 86:    return "Tuyết rơi"
-        case 95...99:   return "Dông"
+        case 0:         return "Clear"
+        case 1, 2:      return "Partly cloudy"
+        case 3:         return "Cloudy"
+        case 45, 48:    return "Foggy"
+        case 51...57:   return "Drizzle"
+        case 61...65:   return "Rain"
+        case 66, 67:    return "Freezing rain"
+        case 71...77:   return "Snow"
+        case 80...82:   return "Rain showers"
+        case 85, 86:    return "Snow showers"
+        case 95...99:   return "Thunderstorm"
         default:        return ""
         }
     }
