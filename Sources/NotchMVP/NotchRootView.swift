@@ -459,7 +459,12 @@ struct WaveBars: View {
                     ForEach(0..<bars, id: \.self) { i in
                         Capsule()
                             .fill(tint.opacity(0.92))
-                            .frame(width: barWidth, height: decorativeHeight(index: i, time: t))
+                            // Without motion, a frozen instant of the invented wave reads as
+                            // a stutter — most visible right as the mini pill appears, before
+                            // the first real frame has come back. Sit flat instead until
+                            // there's something worth showing.
+                            .frame(width: barWidth,
+                                   height: animateFallback ? decorativeHeight(index: i, time: t) : minBar)
                     }
                 }
                 .frame(height: maxHeight)

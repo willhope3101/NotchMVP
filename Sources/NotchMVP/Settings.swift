@@ -5,13 +5,13 @@ import AppKit
 // tool it's a fraction of the work, and every value is visible at once.
 struct Settings: Codable, Equatable {
     var miniTimeoutSeconds: Double = 10
-    // Shorter than the above: coming back from the open panel you've just seen the
-    // details, so the pill is a reminder rather than an announcement.
-    var miniAfterHoverSeconds: Double = 5
+    var miniAfterHoverSeconds: Double = 10
     var collapseDelaySeconds: Double = 0.3
     // Hidden-state hover target, as a fraction of the notch width. Full width made
-    // it easy to trip while moving along the menu bar.
-    var hoverZoneScale: Double = 0.6
+    // it easy to trip while moving along the menu bar; the entry-direction check
+    // in NotchController now carries most of that job, so this can afford to be
+    // generous again — a narrow target just made deliberate hovers feel fiddly.
+    var hoverZoneScale: Double = 0.85
     // The pointer has to linger this long before the panel opens, so merely
     // crossing the notch doesn't trigger it.
     var hoverDwellSeconds: Double = 0.22

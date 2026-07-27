@@ -171,6 +171,11 @@ final class NotchController {
         // more conservative level.
         panel.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
         panel.ignoresMouseEvents = true   // collapsed: fully click-through
+        // SwiftUI's onContinuousHover rides on mouseMoved events, which AppKit
+        // only delivers if the window opts in — without this, the hand cursor
+        // stayed the system arrow until some other event (a click) happened to
+        // wake the window up.
+        panel.acceptsMouseMovedEvents = true
 
         let root = NotchRootView(state: state)
         hosting = NoSafeAreaHostingView(rootView: root)
