@@ -242,7 +242,6 @@ struct NotchRootView: View {
                         WaveBars(isPlaying: media.nowPlaying.isPlaying && isVisible,
                                  feed: media.levelFeed,
                                  tint: media.accent,
-                                 animateFallback: false,
                                  maxHeight: 15)
                             // The 21pt meter centred in the same 42pt wing.
                             .padding(.leading, 10.5)
@@ -427,9 +426,6 @@ struct WaveBars: View {
     let isPlaying: Bool
     @ObservedObject var feed: LevelFeed
     var tint: Color = .white
-    // The fallback is invented motion, so only spend frames on it while the user
-    // is actually looking at the open panel.
-    var animateFallback: Bool = true
     var barWidth: CGFloat = 3
     var spacing: CGFloat = 3
     var maxHeight: CGFloat = 15
@@ -452,19 +448,16 @@ struct WaveBars: View {
             // continuous without smearing the transients.
             .animation(.linear(duration: 1.0 / 20.0), value: levels)
         } else {
-            TimelineView(.animation(minimumInterval: 1.0 / 20.0,
-                                    paused: !isPlaying || !animateFallback)) { context in
+            // Keep this running rather than sitting on one paused frame: a single
+            // frozen instant of the invented wave reads as a stutter, most visible
+            // right as the mini pill appears, before the first real frame is back.
+            TimelineView(.animation(minimumInterval: 1.0 / 20.0, paused: !isPlaying)) { context in
                 let t = context.date.timeIntervalSinceReferenceDate
                 HStack(alignment: .center, spacing: spacing) {
                     ForEach(0..<bars, id: \.self) { i in
                         Capsule()
                             .fill(tint.opacity(0.92))
-                            // Without motion, a frozen instant of the invented wave reads as
-                            // a stutter — most visible right as the mini pill appears, before
-                            // the first real frame has come back. Sit flat instead until
-                            // there's something worth showing.
-                            .frame(width: barWidth,
-                                   height: animateFallback ? decorativeHeight(index: i, time: t) : minBar)
+                            .frame(width: barWidth, height: decorativeHeight(index: i, time: t))
                     }
                 }
                 .frame(height: maxHeight)

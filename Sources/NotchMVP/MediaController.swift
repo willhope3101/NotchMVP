@@ -78,6 +78,16 @@ final class MediaController: ObservableObject {
     private var frameQueue: [[Double]] = []
     private var fetchBusy = false
     private var underrunTicks = 0
+    // Safari's Web Audio graph stays silent when the analyser is wired up from an
+    // Apple Event rather than a real user gesture: the tap succeeds and keeps
+    // handing back well-formed frames, they're just all zero, forever. That reads
+    // as "live" by every check above, so it never falls back on its own — track
+    // whether a fetch has ever come back with an actual signal, and give up on
+    // "live" for this session once enough consecutive fetches came back silent
+    // without one. A real quiet passage doesn't trip this: some early moment in
+    // almost any track has a non-zero sample, which latches sawSignal for good.
+    private var sawSignal = false
+    private var zeroStreak = 0
 
     // Drives the mini presentation. Music/Spotify report play state honestly, so
     // a paused track still counts; for a browser tab, "playing" is inferred from
@@ -105,6 +115,8 @@ final class MediaController: ObservableObject {
     private func startLevelPolling() {
         levelTimer?.invalidate()
         displayTimer?.invalidate()
+        sawSignal = false
+        zeroStreak = 0
 
         // Deliberately one rate for both the mini and the open panel: switching
         // rates meant tearing down and restarting both timers at the exact moment
@@ -173,7 +185,22 @@ final class MediaController: ObservableObject {
             DispatchQueue.main.async {
                 self.fetchBusy = false
                 guard self.wantsLevels else { return }
-                let live = !frames.isEmpty
+                var live = !frames.isEmpty
+                if live {
+                    if frames.allSatisfy({ $0.allSatisfy { $0 < 0.02 } }) {
+                        self.zeroStreak += 1
+                    } else {
+                        self.sawSignal = true
+                        self.zeroStreak = 0
+                    }
+                    // Six straight silent fetches (~1.8s) without ever having seen a
+                    // real sample means this tap isn't going to produce one — stop
+                    // calling it live so the UI can fall back to the decorative
+                    // animation instead of a flat, frozen "real" wave.
+                    if !self.sawSignal && self.zeroStreak >= 6 {
+                        live = false
+                    }
+                }
                 if live == self.levels.isEmpty {
                     notchDebug("levels \(live ? "live" : "unavailable — using decorative")")
                 }
