@@ -637,6 +637,52 @@ final class MediaController: ObservableObject {
         return value.isEmpty ? nil : value
     }
 
+    // Same hunt as locateMediaTab, but skips past any matching tab that's
+    // paused. With several media tabs open — one left paused from earlier,
+    // another actually playing — the plain URL match always found whichever
+    // came first in tab order and then cached it, so a genuinely playing tab
+    // elsewhere was never noticed. Costs one JS round trip per tab scanned
+    // instead of zero, but only runs during a hunt, not on every poll.
+    private func locatePlayingTab(browser: String) -> (window: Int, tab: Int)? {
+        let isSafari = (browser == "Safari")
+        let pausedJS = "(function(){var v=document.querySelector('video');return v?(v.paused?'1':'0'):'1'})()"
+        let readPaused = isSafari
+            ? "set p to (do JavaScript \"\(pausedJS)\" in t)"
+            : """
+              tell t
+                              set p to (execute javascript "\(pausedJS)")
+                          end tell
+              """
+        let script = """
+        tell application "\(browser)"
+            set wi to 0
+            repeat with w in windows
+                set wi to wi + 1
+                set ti to 0
+                repeat with t in tabs of w
+                    set ti to ti + 1
+                    set u to URL of t
+                    if \(Self.urlCondition) then
+                        set p to "1"
+                        try
+                            \(readPaused)
+                        end try
+                        if p is "0" then
+                            return (wi as string) & "," & (ti as string)
+                        end if
+                    end if
+                end repeat
+            end repeat
+            return ""
+        end tell
+        """
+        guard let out = run(script), !out.isEmpty else { return nil }
+        let parts = out.components(separatedBy: ",")
+        guard parts.count == 2, let w = Int(parts[0]), let t = Int(parts[1]) else { return nil }
+        notchDebug("located playing media tab: window \(w) tab \(t)")
+        return (w, t)
+    }
+
     private func locateMediaTab(browser: String) -> (window: Int, tab: Int)? {
         let script = """
         tell application "\(browser)"
@@ -923,13 +969,17 @@ final class MediaController: ObservableObject {
             guard running else { continue }
 
             // Reading the remembered tab directly is one Apple Event; hunting for
-            // it costs one per tab, which dominated this poll.
+            // it costs one per tab, which dominated this poll. Only trust it while
+            // it's actually playing, though — a paused cached tab shouldn't stop
+            // the app from noticing a different tab that's genuinely making sound.
             if let cached = rememberedTab(),
                let payload = readMediaTab(browser: browser, window: cached.window, tab: cached.tab),
-               let info = makeNowPlaying(from: payload, browser: browser) {
+               let info = makeNowPlaying(from: payload, browser: browser), info.isPlaying {
                 return info
             }
-            guard let found = locateMediaTab(browser: browser),
+            // Prefer whichever matching tab is actually playing; fall back to plain
+            // URL match (first one found) so a lone paused tab still shows state.
+            guard let found = locatePlayingTab(browser: browser) ?? locateMediaTab(browser: browser),
                   let payload = readMediaTab(browser: browser, window: found.window, tab: found.tab),
                   let info = makeNowPlaying(from: payload, browser: browser) else { continue }
             remember(tab: found)
