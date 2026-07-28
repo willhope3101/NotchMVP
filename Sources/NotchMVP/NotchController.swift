@@ -452,12 +452,16 @@ final class NotchController {
         let f = screen.frame
         let m = state.metrics
 
-        // While the mini pill is showing, the zone covers the whole pill — art,
-        // waveform and the title row — so pointing at visible pixels always works.
-        // With nothing showing it's deliberately smaller than the notch: the target
-        // is invisible then, and a full-width one was easy to trip by accident.
+        // While the mini pill is showing, the zone spans the whole pill's width —
+        // art, waveform and the title row — so pointing at visible pixels works.
+        // With nothing showing it's deliberately narrower than the notch: the
+        // target is invisible then, and a full-width one was easy to trip by
+        // accident. Both cases get the same vertical shrink, for the same reason:
+        // full height reached a little past the pill/notch into whatever sits
+        // just underneath it.
         let openWidth = state.showMini ? state.miniWidth : m.notchWidth * hoverZoneScale
-        let openHeight = state.showMini ? state.miniVisibleHeight + 4 : m.notchHeight * hoverZoneHeightScale
+        let baseHeight = state.showMini ? state.miniVisibleHeight + 4 : m.notchHeight
+        let openHeight = baseHeight * hoverZoneHeightScale
         let trigger = topSlopped(NSRect(x: f.midX - openWidth / 2,
                                         y: f.maxY - openHeight,
                                         width: openWidth,
