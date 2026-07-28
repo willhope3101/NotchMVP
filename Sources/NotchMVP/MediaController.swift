@@ -571,30 +571,40 @@ final class MediaController: ObservableObject {
 
     // Where the media tab was last found. Walking every tab costs one Apple
     // Event per tab, which dominated the cost of each frame grab; addressing the
-    // remembered tab directly turns that into a single event.
-    private var cachedTab: (window: Int, tab: Int)?
+    // remembered tab directly turns that into a single event. Tagged with the
+    // browser it came from — otherwise, once more than one browser is running,
+    // a window/tab pair cached for Chrome could get reused verbatim against
+    // Safari's own numbering.
+    private var cachedTab: (browser: String, window: Int, tab: Int)?
     private let tabCacheLock = NSLock()
+    // Which browser answered last, so the next poll's cache check doesn't have
+    // to hunt through every running browser just to find out which one to ask.
+    private var lastPlayingBrowser: String?
 
-    private func rememberedTab() -> (window: Int, tab: Int)? {
+    private func rememberedTab(for browser: String) -> (window: Int, tab: Int)? {
         tabCacheLock.lock(); defer { tabCacheLock.unlock() }
-        return cachedTab
+        guard let cached = cachedTab, cached.browser == browser else { return nil }
+        return (cached.window, cached.tab)
     }
 
-    private func remember(tab: (window: Int, tab: Int)?) {
+    private func remember(tab: (window: Int, tab: Int)?, browser: String) {
         tabCacheLock.lock(); defer { tabCacheLock.unlock() }
-        cachedTab = tab
+        cachedTab = tab.map { (browser, $0.window, $0.tab) }
     }
 
-    func invalidateTabCache() { remember(tab: nil) }
+    func invalidateTabCache() {
+        tabCacheLock.lock(); defer { tabCacheLock.unlock() }
+        cachedTab = nil
+    }
 
     // Like runBrowserJS, but hands back whatever the script evaluated to.
     private func browserJSValue(_ js: String, browser: String) -> String? {
-        if let cached = rememberedTab(),
+        if let cached = rememberedTab(for: browser),
            let value = evaluate(js, browser: browser, window: cached.window, tab: cached.tab) {
             return value
         }
         guard let found = locateMediaTab(browser: browser) else { return nil }
-        remember(tab: found)
+        remember(tab: found, browser: browser)
         return evaluate(js, browser: browser, window: found.window, tab: found.tab)
     }
 
@@ -964,25 +974,45 @@ final class MediaController: ObservableObject {
     // running browser and show its title. We can't tell play/paused state or
     // read exact track metadata this way, so isPlaying is assumed true.
     private func queryBrowsers() -> NowPlaying? {
-        for browser in browsers {
-            let running = NSWorkspace.shared.runningApplications.contains { $0.localizedName == browser }
-            guard running else { continue }
+        let running = browsers.filter { browser in
+            NSWorkspace.shared.runningApplications.contains { $0.localizedName == browser }
+        }
+        guard !running.isEmpty else { return nil }
 
-            // Reading the remembered tab directly is one Apple Event; hunting for
-            // it costs one per tab, which dominated this poll. Only trust it while
-            // it's actually playing, though — a paused cached tab shouldn't stop
-            // the app from noticing a different tab that's genuinely making sound.
-            if let cached = rememberedTab(),
-               let payload = readMediaTab(browser: browser, window: cached.window, tab: cached.tab),
-               let info = makeNowPlaying(from: payload, browser: browser), info.isPlaying {
-                return info
-            }
-            // Prefer whichever matching tab is actually playing; fall back to plain
-            // URL match (first one found) so a lone paused tab still shows state.
-            guard let found = locatePlayingTab(browser: browser) ?? locateMediaTab(browser: browser),
+        // Reading the remembered tab directly is one Apple Event; hunting for one
+        // costs one per tab scanned, which dominated this poll. Only trust the
+        // cache while it's still actually playing, though — a paused cached tab
+        // shouldn't stop the app from noticing a different tab, in the same
+        // browser or a different one entirely, that's genuinely making sound.
+        if let last = lastPlayingBrowser, running.contains(last),
+           let cached = rememberedTab(for: last),
+           let payload = readMediaTab(browser: last, window: cached.window, tab: cached.tab),
+           let info = makeNowPlaying(from: payload, browser: last), info.isPlaying {
+            return info
+        }
+
+        // Hunt every running browser for a tab that's actually playing before
+        // settling for a paused one — otherwise a paused tab left open in
+        // whichever browser happens to come first in `browsers` would hide
+        // something genuinely playing in a different one (Chrome sitting on a
+        // paused tab shouldn't hide Safari actually playing).
+        for browser in running {
+            guard let found = locatePlayingTab(browser: browser),
                   let payload = readMediaTab(browser: browser, window: found.window, tab: found.tab),
                   let info = makeNowPlaying(from: payload, browser: browser) else { continue }
-            remember(tab: found)
+            remember(tab: found, browser: browser)
+            lastPlayingBrowser = browser
+            return info
+        }
+
+        // Nothing anywhere is actually playing — fall back to the first plain
+        // URL match so a lone paused tab still shows state instead of nothing.
+        for browser in running {
+            guard let found = locateMediaTab(browser: browser),
+                  let payload = readMediaTab(browser: browser, window: found.window, tab: found.tab),
+                  let info = makeNowPlaying(from: payload, browser: browser) else { continue }
+            remember(tab: found, browser: browser)
+            lastPlayingBrowser = browser
             return info
         }
         return nil
