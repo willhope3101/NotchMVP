@@ -12,6 +12,10 @@ struct Settings: Codable, Equatable {
     // in NotchController now carries most of that job, so this can afford to be
     // generous again — a narrow target just made deliberate hovers feel fiddly.
     var hoverZoneScale: Double = 0.85
+    // Same idea, vertically: the hidden-state target reached a few points below
+    // the physical notch, which was enough to catch a cursor just passing by
+    // underneath it (a browser's tab strip, a maximized window's title bar).
+    var hoverZoneHeightScale: Double = 0.7
     // The pointer has to linger this long before the panel opens, so merely
     // crossing the notch doesn't trigger it.
     var hoverDwellSeconds: Double = 0.22

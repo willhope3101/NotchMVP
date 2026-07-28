@@ -132,6 +132,7 @@ final class NotchController {
     private var suppressMiniOnCollapse = false
     private var collapseDelay: Double { SettingsStore.shared.current.collapseDelaySeconds }
     private var hoverZoneScale: Double { SettingsStore.shared.current.hoverZoneScale }
+    private var hoverZoneHeightScale: Double { SettingsStore.shared.current.hoverZoneHeightScale }
     private var hoverDwell: Double { SettingsStore.shared.current.hoverDwellSeconds }
     // Consecutive ticks the pointer has been inside the opening zone.
     private var ticksInside = 0
@@ -456,7 +457,7 @@ final class NotchController {
         // With nothing showing it's deliberately smaller than the notch: the target
         // is invisible then, and a full-width one was easy to trip by accident.
         let openWidth = state.showMini ? state.miniWidth : m.notchWidth * hoverZoneScale
-        let openHeight = state.showMini ? state.miniVisibleHeight + 4 : m.notchHeight
+        let openHeight = state.showMini ? state.miniVisibleHeight + 4 : m.notchHeight * hoverZoneHeightScale
         let trigger = topSlopped(NSRect(x: f.midX - openWidth / 2,
                                         y: f.maxY - openHeight,
                                         width: openWidth,
@@ -526,7 +527,7 @@ final class NotchController {
     // top of the screen reports exactly that y — which read as "not hovering".
     // Extend rects past the screen edge so the topmost row still counts.
     private func topSlopped(_ rect: NSRect) -> NSRect {
-        NSRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + 8)
+        NSRect(x: rect.minX, y: rect.minY, width: rect.width, height: rect.height + 3)
     }
 
     // Collapsed the window must not swallow clicks meant for the menu bar or
