@@ -15,7 +15,7 @@ struct Settings: Codable, Equatable {
     // Same idea, vertically: the hidden-state target reached a few points below
     // the physical notch, which was enough to catch a cursor just passing by
     // underneath it (a browser's tab strip, a maximized window's title bar).
-    var hoverZoneHeightScale: Double = 0.7
+    var hoverZoneHeightScale: Double = 0.5
     // The pointer has to linger this long before the panel opens, so merely
     // crossing the notch doesn't trigger it.
     var hoverDwellSeconds: Double = 0.22
