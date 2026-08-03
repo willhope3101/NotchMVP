@@ -435,34 +435,40 @@ struct WaveBars: View {
     private var minBar: CGFloat { max(2, barWidth) }
 
     var body: some View {
-        if levels.count == bars {
+        // One view tree for both real and decorative bars, not a branch that
+        // swaps between them: switching `if`/`else` gives each side its own
+        // view identity, so the moment real data arrived, SwiftUI just cut
+        // from whatever the decorative bars were doing straight to the first
+        // live frame — no interpolation possible between two unrelated view
+        // trees, which read as a jitter right as the wave "caught" the signal.
+        // Keeping the same Capsules and only switching where their height
+        // comes from lets the .animation below glide across that handoff too.
+        //
+        // Ticking only matters for the decorative motion — live frames arrive
+        // via `feed`, an @ObservedObject, so they trigger a render on their
+        // own without needing the clock.
+        TimelineView(.animation(minimumInterval: 1.0 / 20.0,
+                                paused: !isPlaying || levels.count == bars)) { context in
+            let t = context.date.timeIntervalSinceReferenceDate
             HStack(alignment: .center, spacing: spacing) {
-                ForEach(Array(levels.enumerated()), id: \.offset) { _, level in
+                ForEach(0..<bars, id: \.self) { i in
                     Capsule()
                         .fill(tint.opacity(0.92))
-                        .frame(width: barWidth, height: max(minBar, maxHeight * CGFloat(level)))
+                        .frame(width: barWidth, height: currentHeight(index: i, time: t))
                 }
             }
             .frame(height: maxHeight)
             // Frames already arrive in order; glide only far enough to look
             // continuous without smearing the transients.
             .animation(.linear(duration: 1.0 / 20.0), value: levels)
-        } else {
-            // Keep this running rather than sitting on one paused frame: a single
-            // frozen instant of the invented wave reads as a stutter, most visible
-            // right as the mini pill appears, before the first real frame is back.
-            TimelineView(.animation(minimumInterval: 1.0 / 20.0, paused: !isPlaying)) { context in
-                let t = context.date.timeIntervalSinceReferenceDate
-                HStack(alignment: .center, spacing: spacing) {
-                    ForEach(0..<bars, id: \.self) { i in
-                        Capsule()
-                            .fill(tint.opacity(0.92))
-                            .frame(width: barWidth, height: decorativeHeight(index: i, time: t))
-                    }
-                }
-                .frame(height: maxHeight)
-            }
         }
+    }
+
+    private func currentHeight(index: Int, time: Double) -> CGFloat {
+        if levels.count == bars {
+            return max(minBar, maxHeight * CGFloat(levels[index]))
+        }
+        return decorativeHeight(index: index, time: time)
     }
 
     private func decorativeHeight(index: Int, time: Double) -> CGFloat {
