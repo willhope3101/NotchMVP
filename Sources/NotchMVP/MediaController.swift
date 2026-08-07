@@ -247,6 +247,21 @@ final class MediaController: ObservableObject {
     private static var hrefCondition: String {
         mediaHosts.map { "h.indexOf('\($0)')>=0" }.joined(separator: "||")
     }
+
+    // Every AppleScript call in this file goes through one lock (see `run`), so
+    // a single unresponsive tab — a suspended background tab, a page stuck
+    // executing something heavy, a JS `alert()` left open — can hang that one
+    // Apple Event indefinitely and, with it, every other media command in the
+    // app until it clears. `do JavaScript`/`execute javascript` are the only
+    // calls that run page code and can actually get stuck like that; wrapping
+    // them bounds the damage to one skipped tab instead of a frozen app.
+    private static func timeBoxed(_ statement: String, seconds: Int = 3) -> String {
+        """
+        with timeout of \(seconds) seconds
+                            \(statement)
+                        end timeout
+        """
+    }
     private func isBrowser(_ app: String) -> Bool { browsers.contains(app) }
 
     // MARK: Playback commands
@@ -646,7 +661,7 @@ final class MediaController: ObservableObject {
         let script = """
         tell application "\(browser)"
             try
-                \(call)
+                \(Self.timeBoxed(call))
                 return "1" & (r as string)
             end try
             return ""
@@ -707,7 +722,7 @@ final class MediaController: ObservableObject {
                     if \(Self.urlCondition) then
                         set p to "1"
                         try
-                            \(readPaused)
+                            \(Self.timeBoxed(readPaused, seconds: 2))
                         end try
                         if p is "0" then
                             set tid to ""
@@ -771,7 +786,7 @@ final class MediaController: ObservableObject {
             let script = """
             tell application "\(browser)"
                 try
-                    \(call)
+                    \(Self.timeBoxed(call))
                     return "ok"
                 end try
                 return ""
@@ -1087,7 +1102,7 @@ final class MediaController: ObservableObject {
                 if \(Self.urlCondition) then
                     set s to "unknown"
                     try
-                        \(readState)
+                        \(Self.timeBoxed(readState))
                     end try
                     return (\(titleProp) of t as string) & "\\n" & (u as string) & "\\n" & (s as string)
                 end if
